@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace Foodery.Data.Models
 {
-    public class User
+    public class User : IdentityUser
     {
-        public Guid Id { get; set; }
     }
 }
