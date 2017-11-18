@@ -4,9 +4,11 @@ using System.Linq;
 using System.Reflection;
 using Foodery.Common.Attributes;
 using Foodery.Data;
-using Microsoft.Extensions.DependencyInjection;
+using Foodery.Data.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Foodery.Web.Config
 {
@@ -14,41 +16,62 @@ namespace Foodery.Web.Config
     {
         private const string DefaultConnectionStringSection = "Default";
 
-        internal static void AddBaseServices(this IServiceCollection services, IConfiguration configuration)
+        internal static IServiceCollection AddBaseServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions();
             services.AddMvc();
 
             var connectionString = configuration.GetConnectionString(DefaultConnectionStringSection);
             services.AddDbContext<FooderyContext>(options => options.UseSqlServer(connectionString));
+
+            return services;
         }
 
-        internal static void AddConventionNamedServices(this IServiceCollection services, IEnumerable<string> assemblyNames)
+        internal static IServiceCollection AddAuth(this IServiceCollection services)
         {
-            foreach (var name in assemblyNames)
+            services.AddIdentity<User, IdentityRole>()
+                    .AddEntityFrameworkStores<FooderyContext>()
+                    .AddDefaultTokenProviders();
+            services.AddIdentityServer()
+                    .AddInMemoryApiResources(AuthConfig.GetApiResources())
+                    .AddInMemoryIdentityResources(AuthConfig.GetIdentityResources())
+                    .AddInMemoryClients(AuthConfig.GetClients())
+                    .AddDeveloperSigningCredential(); // This should not be used in production
+
+            return services;
+        }
+
+        internal static IServiceCollection AddConventionNamedServices(this IServiceCollection services, IEnumerable<string> assemblyNames)
+        {
+            if (assemblyNames != null)
             {
-                var assembly = Assembly.Load(name);
-                var types = assembly.GetTypes().Where(t => t.IsClass);
-
-                foreach (var classType in types)
+                foreach (var name in assemblyNames)
                 {
-                    var defaultInterface = classType.GetInterfaces().FirstOrDefault(i => i.Name == $"I{classType.Name}");
+                    var assembly = Assembly.Load(name);
+                    var types = assembly.GetTypes().Where(t => t.IsClass);
 
-                    if (defaultInterface != null)
+                    foreach (var classType in types)
                     {
-                        var singletonAttribute = Attribute.GetCustomAttribute(classType, typeof(SingletonBindingAttribute));
+                        var defaultInterface = classType.GetInterfaces().FirstOrDefault(i => i.Name == $"I{classType.Name}");
 
-                        if (singletonAttribute != null)
+                        if (defaultInterface != null)
                         {
-                            services.AddSingleton(defaultInterface, classType);
-                        }
-                        else
-                        {
-                            services.AddScoped(defaultInterface, classType);
+                            var singletonAttribute = Attribute.GetCustomAttribute(classType, typeof(SingletonBindingAttribute));
+
+                            if (singletonAttribute != null)
+                            {
+                                services.AddSingleton(defaultInterface, classType);
+                            }
+                            else
+                            {
+                                services.AddScoped(defaultInterface, classType);
+                            }
                         }
                     }
                 }
             }
+
+            return services;
         }
     }
 }
