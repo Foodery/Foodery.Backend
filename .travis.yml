@@ -17,4 +17,4 @@ branches:
 script:
   - dotnet restore ./Foodery/Foodery.sln
   - dotnet build ./Foodery/Foodery.sln -c Release
-  - dotnet test ./Foodery/Tests/Unit/Foodery.Unit.Tests/Foodery.Unit.Tests.csproj -c Release
+  - dotnet test ./Foodery/Tests/Unit/Foodery.Tests.Unit.Web/Foodery.Tests.Unit.Web.csproj -c Release

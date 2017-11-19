@@ -4,6 +4,7 @@ using Foodery.Web.Models.Auth.Login;
 using Foodery.Core.Auth.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Foodery.Auth.Interfaces;
 
 namespace Foodery.Web.Controllers.Auth
 {
@@ -12,10 +13,10 @@ namespace Foodery.Web.Controllers.Auth
     /// </summary>
     public class AuthController : AuthBaseController
     {
-        private readonly UserManager<User> userManager;
+        private readonly IApplicationUserManager userManager;
         private readonly ITokenProvider tokenProvider;
 
-        public AuthController(UserManager<User> userManager,
+        public AuthController(IApplicationUserManager userManager,
                               ITokenProvider tokenProvider)
         {
             this.userManager = userManager;
