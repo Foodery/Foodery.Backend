@@ -1,4 +1,4 @@
-﻿namespace Foodery.Web.Models.Login
+﻿namespace Foodery.Web.Models.Auth.Login
 {
     public class LoginRequest
     {

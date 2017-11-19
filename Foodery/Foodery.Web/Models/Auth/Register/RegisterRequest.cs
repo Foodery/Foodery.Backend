@@ -1,4 +1,4 @@
-﻿namespace Foodery.Web.Models.Register
+﻿namespace Foodery.Web.Models.Auth.Register
 {
     public class RegisterRequest
     {

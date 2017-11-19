@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AutoMapper;
+using Foodery.Auth;
 using Foodery.Common.Attributes;
 using Foodery.Data;
 using Foodery.Data.Models;
@@ -18,6 +20,7 @@ namespace Foodery.Web.Config
 
         internal static IServiceCollection AddBaseServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddAutoMapper();
             services.AddOptions();
             services.AddMvc();
 
@@ -29,13 +32,15 @@ namespace Foodery.Web.Config
 
         internal static IServiceCollection AddAuth(this IServiceCollection services)
         {
+            var authConfig = new AuthConfigProvider();
+
             services.AddIdentity<User, IdentityRole>()
                     .AddEntityFrameworkStores<FooderyContext>()
                     .AddDefaultTokenProviders();
             services.AddIdentityServer()
-                    .AddInMemoryApiResources(AuthConfig.GetApiResources())
-                    .AddInMemoryIdentityResources(AuthConfig.GetIdentityResources())
-                    .AddInMemoryClients(AuthConfig.GetClients())
+                    .AddInMemoryApiResources(authConfig.GetApiResources())
+                    .AddInMemoryIdentityResources(authConfig.GetIdentityResources())
+                    .AddInMemoryClients(authConfig.GetClients())
                     .AddDeveloperSigningCredential(); // This should not be used in production
 
             return services;
@@ -43,29 +48,26 @@ namespace Foodery.Web.Config
 
         internal static IServiceCollection AddConventionNamedServices(this IServiceCollection services, IEnumerable<string> assemblyNames)
         {
-            if (assemblyNames != null)
+            foreach (var name in assemblyNames)
             {
-                foreach (var name in assemblyNames)
+                var assembly = Assembly.Load(name);
+                var types = assembly.GetTypes().Where(t => t.IsClass);
+
+                foreach (var classType in types)
                 {
-                    var assembly = Assembly.Load(name);
-                    var types = assembly.GetTypes().Where(t => t.IsClass);
+                    var defaultInterface = classType.GetInterfaces().FirstOrDefault(i => i.Name == $"I{classType.Name}");
 
-                    foreach (var classType in types)
+                    if (defaultInterface != null)
                     {
-                        var defaultInterface = classType.GetInterfaces().FirstOrDefault(i => i.Name == $"I{classType.Name}");
+                        var singletonAttribute = Attribute.GetCustomAttribute(classType, typeof(SingletonBindingAttribute));
 
-                        if (defaultInterface != null)
+                        if (singletonAttribute != null)
                         {
-                            var singletonAttribute = Attribute.GetCustomAttribute(classType, typeof(SingletonBindingAttribute));
-
-                            if (singletonAttribute != null)
-                            {
-                                services.AddSingleton(defaultInterface, classType);
-                            }
-                            else
-                            {
-                                services.AddScoped(defaultInterface, classType);
-                            }
+                            services.AddSingleton(defaultInterface, classType);
+                        }
+                        else
+                        {
+                            services.AddScoped(defaultInterface, classType);
                         }
                     }
                 }

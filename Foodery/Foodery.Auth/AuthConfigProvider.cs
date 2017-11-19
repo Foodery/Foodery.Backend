@@ -1,12 +1,16 @@
-﻿using IdentityServer4;
+﻿using System.Collections.Generic;
+using Foodery.Core.Auth.Interfaces;
+using IdentityServer4;
 using IdentityServer4.Models;
-using System.Collections.Generic;
 
-namespace Foodery.Web.Config
+namespace Foodery.Auth
 {
-    public static class AuthConfig
+    public class AuthConfigProvider : IAuthConfigProvider
     {
-        public static IEnumerable<ApiResource> GetApiResources()
+        /// <summary>
+        /// Get all api resources.
+        /// </summary>
+        public IEnumerable<ApiResource> GetApiResources()
         {
             return new List<ApiResource>
             {
@@ -14,7 +18,10 @@ namespace Foodery.Web.Config
             };
         }
 
-        public static IEnumerable<IdentityResource> GetIdentityResources()
+        /// <summary>
+        /// Get all identity resources such as Profile etc.
+        /// </summary>
+        public IEnumerable<IdentityResource> GetIdentityResources()
         {
             return new List<IdentityResource>
             {
@@ -23,7 +30,10 @@ namespace Foodery.Web.Config
             };
         }
 
-        public static IEnumerable<Client> GetClients()
+        /// <summary>
+        /// Get the clients that can be authenticated.
+        /// </summary>
+        public IEnumerable<Client> GetClients()
         {
             return new List<Client>
             {
