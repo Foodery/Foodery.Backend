@@ -1,17 +1,16 @@
 ﻿using System.Threading.Tasks;
-using Foodery.Data.Models;
 using Foodery.Web.Models.Auth.Login;
 using Foodery.Core.Auth.Interfaces;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Foodery.Auth.Interfaces;
+using Foodery.Common.Validation.Constants;
 
 namespace Foodery.Web.Controllers.Auth
 {
     /// <summary>
     /// Manage different types of login and logout.
     /// </summary>
-    public class AuthController : AuthBaseController
+    public class AuthController : BaseController
     {
         private readonly IApplicationUserManager userManager;
         private readonly ITokenProvider tokenProvider;
@@ -35,19 +34,19 @@ namespace Foodery.Web.Controllers.Auth
         {
             if (string.IsNullOrEmpty(loginRequest.UserName) || string.IsNullOrEmpty(loginRequest.Password))
             {
-                return this.BadRequest(this.CreateDefaultResponse(message: InvalidUserNameOrPassword));
+                return this.BadRequest(this.CreateDefaultResponse(message: UserConstants.ValidationMessages.InvalidUserNameOrPassword));
             }
 
             var foundUser = await this.userManager.FindByNameAsync(loginRequest.UserName);
             if (foundUser == null)
             {
-                return this.BadRequest(this.CreateDefaultResponse(message: InvalidUserNameOrPassword));
+                return this.BadRequest(this.CreateDefaultResponse(message: UserConstants.ValidationMessages.InvalidUserNameOrPassword));
             }
 
             bool hasValidPassword = await this.userManager.CheckPasswordAsync(foundUser, loginRequest.Password);
             if (!hasValidPassword)
             {
-                return this.BadRequest(this.CreateDefaultResponse(message: InvalidUserNameOrPassword));
+                return this.BadRequest(this.CreateDefaultResponse(message: UserConstants.ValidationMessages.InvalidUserNameOrPassword));
             }
 
             var token = await this.tokenProvider.GetJWT(foundUser, this.HttpContext);

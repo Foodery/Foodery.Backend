@@ -1,18 +1,19 @@
 ﻿using System.Threading.Tasks;
+using AutoMapper;
+using Foodery.Auth.Interfaces;
 using Foodery.Data.Models;
 using Foodery.Web.Models.Auth.Register;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using AutoMapper;
+using Foodery.Common.Validation.Constants;
 
 namespace Foodery.Web.Controllers.Auth
 {
-    public class AccountController : AuthBaseController
+    public class AccountController : BaseController
     {
-        private readonly UserManager<User> userManager;
+        private readonly IApplicationUserManager userManager;
         private readonly IMapper mapper;
 
-        public AccountController(UserManager<User> userManager,
+        public AccountController(IApplicationUserManager userManager,
                                  IMapper mapper)
         {
             this.userManager = userManager;
@@ -29,13 +30,13 @@ namespace Foodery.Web.Controllers.Auth
         {
             if (string.IsNullOrEmpty(registerRequest.UserName) || string.IsNullOrEmpty(registerRequest.Password))
             {
-                return this.BadRequest(this.CreateDefaultResponse(message: InvalidUserNameOrPassword));
+                return this.BadRequest(this.CreateDefaultResponse(message: UserConstants.ValidationMessages.InvalidUserNameOrPassword));
             }
 
             var foundUser = await this.userManager.FindByNameAsync(registerRequest.UserName);
             if (foundUser != null)
             {
-                return this.BadRequest(this.CreateDefaultResponse(message: UserAlreadyExists));
+                return this.BadRequest(this.CreateDefaultResponse(message: UserConstants.ValidationMessages.UserAlreadyExists));
             }
 
             var user = new User { UserName = registerRequest.UserName };
