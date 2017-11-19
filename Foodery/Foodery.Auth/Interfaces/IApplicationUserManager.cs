@@ -1,10 +1,22 @@
 ﻿using Foodery.Data.Models;
+using Microsoft.AspNetCore.Identity;
 using System.Threading.Tasks;
 
 namespace Foodery.Auth.Interfaces
 {
     public interface IApplicationUserManager
     {
+        /// <summary>
+        /// Hashing utilities service.
+        /// </summary>
+        IPasswordHasher<User> PasswordHasher { get;  }
+
+        /// <summary>
+        /// Creates new user.
+        /// </summary>
+        /// <param name="user">User data.</param>
+        Task<IdentityResult> CreateAsync(User user);
+
         /// <summary>
         /// Find user by given username.
         /// </summary>

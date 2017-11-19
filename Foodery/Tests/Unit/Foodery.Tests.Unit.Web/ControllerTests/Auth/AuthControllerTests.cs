@@ -1,46 +1,42 @@
 ﻿using System.Threading.Tasks;
 using Foodery.Web.Controllers.Auth;
-using Foodery.Web.Models;
 using Foodery.Web.Models.Auth.Login;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using NUnit.Framework;
-using Moq;
 using Foodery.Auth.Interfaces;
 using Foodery.Data.Models;
+using Foodery.Common.Validation.Constants;
 using Foodery.Core.Auth.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using NUnit.Framework;
+using Moq;
 
 namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
 {
     [TestFixture]
     public class AuthControllerTests
     {
-        private const string SamplePassword = "123456q!A";
-        private const string SampleUsername = "John Doe";
-
         [Test]
         public async Task Login_ShouldReturnAppropriateErrorResponse_WhenTheUsernameOrThePasswordIsEmpty()
         {
             // Arrange
             var controller = new AuthController(null, null);
-            var loginRequest = new LoginRequest { Password = SamplePassword };
+            var loginRequest = new LoginRequest { Password = AuthCommon.SamplePassword };
 
             // Act
             var actionResult = await controller.Login(loginRequest) as BadRequestObjectResult;
 
             // Assert
-            this.ValidateErrorResponse(actionResult);
+            AuthCommon.ValidateErrorResponse(actionResult, UserConstants.ValidationMessages.InvalidUserNameOrPassword);
 
             // Arrange
             loginRequest.Password = null;
-            loginRequest.UserName = SampleUsername;
+            loginRequest.UserName = AuthCommon.SampleUsername;
 
             // Act
             actionResult = await controller.Login(loginRequest) as BadRequestObjectResult;
 
             // Assert
-            this.ValidateErrorResponse(actionResult);
+            AuthCommon.ValidateErrorResponse(actionResult, UserConstants.ValidationMessages.InvalidUserNameOrPassword);
         }
 
         [Test]
@@ -52,14 +48,14 @@ namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
                 .Setup(x => x.FindByNameAsync(It.IsAny<string>()))
                 .Returns(Task.Run(() => null as User));
 
-            var loginRequest = new LoginRequest { Password = SamplePassword, UserName = SampleUsername };
+            var loginRequest = new LoginRequest { Password = AuthCommon.SamplePassword, UserName = AuthCommon.SampleUsername };
             var controller = new AuthController(userManager.Object, null);
 
             // Act
             var actionResult = await controller.Login(loginRequest) as BadRequestObjectResult;
 
             // Assert
-            this.ValidateErrorResponse(actionResult);
+            AuthCommon.ValidateErrorResponse(actionResult, UserConstants.ValidationMessages.InvalidUserNameOrPassword);
         }
 
         [Test]
@@ -74,14 +70,14 @@ namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
                 .Setup(x => x.CheckPasswordAsync(It.IsAny<User>(), It.IsAny<string>()))
                 .Returns(Task.Run(() => false));
 
-            var loginRequest = new LoginRequest { Password = SamplePassword, UserName = SampleUsername };
+            var loginRequest = new LoginRequest { Password = AuthCommon.SamplePassword, UserName = AuthCommon.SampleUsername };
             var controller = new AuthController(userManager.Object, null);
 
             // Act
             var actionResult = await controller.Login(loginRequest) as BadRequestObjectResult;
 
             // Assert
-            this.ValidateErrorResponse(actionResult);
+            AuthCommon.ValidateErrorResponse(actionResult, UserConstants.ValidationMessages.InvalidUserNameOrPassword);
         }
 
         [Test]
@@ -103,32 +99,16 @@ namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
                 .Returns(Task.Run(() => jwt));
 
             var controller = new AuthController(userManager.Object, tokenProvider.Object);
-            var loginRequest = new LoginRequest { Password = SamplePassword, UserName = SampleUsername };
+            var loginRequest = new LoginRequest { Password = AuthCommon.SamplePassword, UserName = AuthCommon.SampleUsername };
 
             // Act
             var actionResult = await controller.Login(loginRequest) as OkObjectResult;
 
             // Assert
-            var response = this.GetResponse(actionResult);
-
-            // Serialize and then deserialize, because the token property is toLowercase
-            // and response.Data cannot be casted to LoginResponse directly.
-            var data = JsonConvert.DeserializeObject<LoginResponse>(JsonConvert.SerializeObject(response.Data));
+            var response = AuthCommon.GetResponse(actionResult);            
+            var data = AuthCommon.GetNormalizedDataObject<LoginResponse>(response);
             Assert.IsTrue(response.Success);
             Assert.AreEqual(jwt, data.Token);
-        }
-
-        private void ValidateErrorResponse(ObjectResult action)
-        {
-            var response = this.GetResponse(action);
-            Assert.IsFalse(response.Success);
-            Assert.IsFalse(string.IsNullOrEmpty(response.Message));
-        }
-
-        private DefaultResponse GetResponse(ObjectResult objectResult)
-        {
-            var response = JsonConvert.DeserializeObject<DefaultResponse>((string)objectResult.Value);
-            return response;
         }
     }
 }
