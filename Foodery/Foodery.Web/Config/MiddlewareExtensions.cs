@@ -5,14 +5,23 @@ namespace Foodery.Web.Config
 {
     internal static class MiddlewareExtensions
     {
-        internal static void AddBaseMiddlewares(this IApplicationBuilder app, IHostingEnvironment env)
+        internal static IApplicationBuilder AddBaseMiddlewares(this IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMvc();
+            app.UseAuthentication();
+            app.UseIdentityServer();
+            app.UseMvc(routeBuilder =>
+            {
+                routeBuilder.MapRoute(
+                    name: "default",
+                    template: "{controller}/{action}");
+            });
+
+            return app;
         }
     }
 }

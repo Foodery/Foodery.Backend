@@ -1,6 +1,8 @@
-﻿namespace Foodery.Common.Attributes
+﻿using System;
+
+namespace Foodery.Common.Attributes
 {
-    public class SingletonBindingAttribute
+    public class SingletonBindingAttribute : Attribute
     {
     }
 }

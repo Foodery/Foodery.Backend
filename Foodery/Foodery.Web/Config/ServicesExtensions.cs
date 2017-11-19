@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AutoMapper;
+using Foodery.Auth;
 using Foodery.Common.Attributes;
 using Foodery.Data;
-using Microsoft.Extensions.DependencyInjection;
+using Foodery.Data.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Foodery.Web.Config
 {
@@ -14,16 +18,35 @@ namespace Foodery.Web.Config
     {
         private const string DefaultConnectionStringSection = "Default";
 
-        internal static void AddBaseServices(this IServiceCollection services, IConfiguration configuration)
+        internal static IServiceCollection AddBaseServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddAutoMapper();
             services.AddOptions();
             services.AddMvc();
 
             var connectionString = configuration.GetConnectionString(DefaultConnectionStringSection);
             services.AddDbContext<FooderyContext>(options => options.UseSqlServer(connectionString));
+
+            return services;
         }
 
-        internal static void AddConventionNamedServices(this IServiceCollection services, IEnumerable<string> assemblyNames)
+        internal static IServiceCollection AddAuth(this IServiceCollection services)
+        {
+            var authConfig = new AuthConfigProvider();
+
+            services.AddIdentity<User, IdentityRole>()
+                    .AddEntityFrameworkStores<FooderyContext>()
+                    .AddDefaultTokenProviders();
+            services.AddIdentityServer()
+                    .AddInMemoryApiResources(authConfig.GetApiResources())
+                    .AddInMemoryIdentityResources(authConfig.GetIdentityResources())
+                    .AddInMemoryClients(authConfig.GetClients())
+                    .AddDeveloperSigningCredential(); // This should not be used in production
+
+            return services;
+        }
+
+        internal static IServiceCollection AddConventionNamedServices(this IServiceCollection services, IEnumerable<string> assemblyNames)
         {
             foreach (var name in assemblyNames)
             {
@@ -49,6 +72,8 @@ namespace Foodery.Web.Config
                     }
                 }
             }
+
+            return services;
         }
     }
 }
