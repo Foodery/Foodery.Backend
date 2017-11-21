@@ -12,6 +12,12 @@ namespace Foodery.Web.Config
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(options =>
+            {
+                options.WithOrigins("http://localhost:4200");
+                options.AllowAnyMethod();
+                options.AllowAnyHeader();
+            });
             app.UseAuthentication();
             app.UseIdentityServer();
             app.UseMvc(routeBuilder =>
