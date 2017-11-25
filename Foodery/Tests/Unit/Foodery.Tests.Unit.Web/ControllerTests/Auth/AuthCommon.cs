@@ -1,6 +1,5 @@
-﻿using Foodery.Web.Models;
+﻿using Foodery.Tests.Unit.Web.Utils;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using NUnit.Framework;
 
 namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
@@ -12,7 +11,7 @@ namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
 
         internal static void ValidateErrorResponse(ObjectResult action, string expectedMessage = null)
         {
-            var response = GetResponse(action);
+            var response = ObjectResultUtils.GetResponse(action);
             Assert.IsFalse(response.Success);
             Assert.IsFalse(string.IsNullOrEmpty(response.Message));
 
@@ -20,21 +19,6 @@ namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
             {
                 Assert.AreEqual(expectedMessage, response.Message);
             }
-        }
-
-        internal static DefaultResponse GetResponse(ObjectResult objectResult)
-        {
-            var response = JsonConvert.DeserializeObject<DefaultResponse>((string)objectResult.Value);
-            return response;
-        }
-
-        internal static T GetNormalizedDataObject<T>(DefaultResponse response)
-            where T: class
-        {
-            // Serialize and then deserialize, because the token property is toLowercase
-            // and response.Data cannot be casted to T directly.
-            var dataObj = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(response.Data));
-            return dataObj;
         }
     }
 }

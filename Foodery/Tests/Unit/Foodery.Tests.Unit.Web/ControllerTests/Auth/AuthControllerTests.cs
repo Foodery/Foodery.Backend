@@ -5,6 +5,7 @@ using Foodery.Auth.Interfaces;
 using Foodery.Data.Models;
 using Foodery.Common.Validation.Constants;
 using Foodery.Core.Auth.Interfaces;
+using Foodery.Tests.Unit.Web.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using NUnit.Framework;
@@ -15,30 +16,6 @@ namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
     [TestFixture]
     public class AuthControllerTests
     {
-        [Test]
-        public async Task Login_ShouldReturnAppropriateErrorResponse_WhenTheUsernameOrThePasswordIsEmpty()
-        {
-            // Arrange
-            var controller = new AuthController(null, null);
-            var loginRequest = new LoginRequest { Password = AuthCommon.SamplePassword };
-
-            // Act
-            var actionResult = await controller.Login(loginRequest) as BadRequestObjectResult;
-
-            // Assert
-            AuthCommon.ValidateErrorResponse(actionResult, UserConstants.ValidationMessages.InvalidUserNameOrPassword);
-
-            // Arrange
-            loginRequest.Password = null;
-            loginRequest.UserName = AuthCommon.SampleUsername;
-
-            // Act
-            actionResult = await controller.Login(loginRequest) as BadRequestObjectResult;
-
-            // Assert
-            AuthCommon.ValidateErrorResponse(actionResult, UserConstants.ValidationMessages.InvalidUserNameOrPassword);
-        }
-
         [Test]
         public async Task Login_ShouldReturnAppropriateErrorResponse_WhenTheUserDoesntExist()
         {
@@ -105,8 +82,8 @@ namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
             var actionResult = await controller.Login(loginRequest) as OkObjectResult;
 
             // Assert
-            var response = AuthCommon.GetResponse(actionResult);            
-            var data = AuthCommon.GetNormalizedDataObject<LoginResponse>(response);
+            var response = ObjectResultUtils.GetResponse(actionResult);            
+            var data = ObjectResultUtils.GetNormalizedDataObject<LoginResponse>(response);
             Assert.IsTrue(response.Success);
             Assert.AreEqual(jwt, data.Token);
         }

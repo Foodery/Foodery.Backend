@@ -5,6 +5,7 @@ using Foodery.Common.Validation.Constants;
 using Foodery.Data.Models;
 using Foodery.Web.Controllers.Auth;
 using Foodery.Web.Models.Auth.Register;
+using Foodery.Tests.Unit.Web.Utils;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -15,30 +16,6 @@ namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
     [TestFixture]
     public class AccountControllerTests
     {
-        [Test]
-        public async Task Register_ShouldReturnAppropriateErrorResponse_WhenUsernameOrPasswordIsMissing()
-        {
-            // Arrange
-            var controller = new AccountController(null, null);
-            var registerRequest = new RegisterRequest { Password = AuthCommon.SamplePassword };
-
-            // Act
-            var actionResult = await controller.Register(registerRequest) as BadRequestObjectResult;
-
-            // Assert
-            AuthCommon.ValidateErrorResponse(actionResult, UserConstants.ValidationMessages.InvalidUserNameOrPassword);
-
-            // Arrange
-            registerRequest.Password = null;
-            registerRequest.UserName = AuthCommon.SampleUsername;
-
-            // Act
-            actionResult = await controller.Register(registerRequest) as BadRequestObjectResult;
-
-            // Assert
-            AuthCommon.ValidateErrorResponse(actionResult, UserConstants.ValidationMessages.InvalidUserNameOrPassword);
-        }
-
         [Test]
         public async Task Register_ShouldReturnAppropriateErrorResponse_WhenUserWithSuchUsernameAlreadyExists()
         {
@@ -107,8 +84,8 @@ namespace Foodery.Tests.Unit.Web.ControllerTests.Auth
             var actionResult = await controller.Register(registerRequest) as OkObjectResult;
 
             // Assert
-            var response = AuthCommon.GetResponse(actionResult);
-            var data = AuthCommon.GetNormalizedDataObject<RegisterResponse>(response);
+            var response = ObjectResultUtils.GetResponse(actionResult);
+            var data = ObjectResultUtils.GetNormalizedDataObject<RegisterResponse>(response);
 
             Assert.IsTrue(response.Success);
             Assert.AreEqual(registerRequest.UserName, data.UserName);

@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Foodery.Web.Models.Auth.Login;
 using Foodery.Core.Auth.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 using Foodery.Auth.Interfaces;
 using Foodery.Common.Validation.Constants;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Foodery.Web.Controllers.Auth
 {
@@ -32,11 +32,6 @@ namespace Foodery.Web.Controllers.Auth
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
-            if (string.IsNullOrEmpty(loginRequest.UserName) || string.IsNullOrEmpty(loginRequest.Password))
-            {
-                return this.BadRequest(this.CreateDefaultResponse(message: UserConstants.ValidationMessages.InvalidUserNameOrPassword));
-            }
-
             var foundUser = await this.userManager.FindByNameAsync(loginRequest.UserName);
             if (foundUser == null)
             {
