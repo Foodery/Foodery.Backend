@@ -28,11 +28,6 @@ namespace Foodery.Web.Controllers.Auth
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
         {
-            if (string.IsNullOrEmpty(registerRequest.UserName) || string.IsNullOrEmpty(registerRequest.Password))
-            {
-                return this.BadRequest(this.CreateDefaultResponse(message: UserConstants.ValidationMessages.InvalidUserNameOrPassword));
-            }
-
             var foundUser = await this.userManager.FindByNameAsync(registerRequest.UserName);
             if (foundUser != null)
             {

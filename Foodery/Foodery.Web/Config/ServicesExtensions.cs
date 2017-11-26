@@ -7,6 +7,7 @@ using Foodery.Auth;
 using Foodery.Common.Attributes;
 using Foodery.Data;
 using Foodery.Data.Models;
+using Foodery.Web.Attributes.Filters.Action;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +23,10 @@ namespace Foodery.Web.Config
         {
             services.AddAutoMapper();
             services.AddOptions();
-            services.AddMvc();
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new ModelStateValidationAttribute());
+            });
 
             var connectionString = configuration.GetConnectionString(DefaultConnectionStringSection);
             services.AddDbContext<FooderyContext>(options => options.UseSqlServer(connectionString));

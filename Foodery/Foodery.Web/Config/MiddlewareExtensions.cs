@@ -14,7 +14,7 @@ namespace Foodery.Web.Config
 
             app.UseCors(options =>
             {
-                options.WithOrigins("http://localhost:4200");
+                options.AllowAnyOrigin(); // For testing purposes
                 options.AllowAnyMethod();
                 options.AllowAnyHeader();
             });
